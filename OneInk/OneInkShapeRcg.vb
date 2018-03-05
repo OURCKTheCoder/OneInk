@@ -24,7 +24,7 @@ Module OneInkShapeRcg
             analyzerText.AddDataForStrokes(strokesText)
 
             'Force analyzer to process strokes as handwriting.
-            For Each stroke As Object In strokesText 'VB.NET允许指明一组对象中的每一个：each关键字
+            For Each stroke As InkStroke In strokesText 'VB.NET允许指明一组对象中的每一个：each关键字
                 analyzerText.SetStrokeDataKind(stroke.Id, InkAnalysisStrokeKind.Writing)
             Next
             'Clear recognition results string.
@@ -33,9 +33,9 @@ Module OneInkShapeRcg
             resultText = Await analyzerText.AnalyzeAsync()
 
             If resultText.Status = InkAnalysisStatus.Updated Then 'Analyze start.
-                Dim Text As Object = analyzerText.AnalysisRoot.RecognizedText
+                Dim Text As String = analyzerText.AnalysisRoot.RecognizedText
                 words = analyzerText.AnalysisRoot.FindNodes(InkAnalysisNodeKind.InkWord)
-                For Each word As Object In words
+                For Each word As IInkAnalysisNode In words
                     Dim concreteWord As InkAnalysisInkWord = word '(InkAnalysisInkWord) word in C#
                     For Each s As String In concreteWord.TextAlternates
                         ResultStr += s + " "
@@ -62,9 +62,9 @@ Module OneInkShapeRcg
             resultShape = Await analyzerShape.AnalyzeAsync()
 
             If resultShape.Status = InkAnalysisStatus.Updated Then
-                Dim drawings As Object = analyzerShape.AnalysisRoot.FindNodes(InkAnalysisNodeKind.InkDrawing)
+                Dim drawings As List(Of IInkAnalysisNode) = analyzerShape.AnalysisRoot.FindNodes(InkAnalysisNodeKind.InkDrawing)
 
-                For Each drawing As Object In drawings
+                For Each drawing As IInkAnalysisNode In drawings
                     Dim Shape As InkAnalysisInkDrawing = drawing '!!!!!"(InkAnalysisInkDrawing) drawing"
                     If Shape.DrawingKind = InkAnalysisDrawingKind.Drawing Then
                         Debug.WriteLine("Unsupported drawing!")
@@ -74,8 +74,8 @@ Module OneInkShapeRcg
                             'Else
                             Dim RcgedPolygon As Polygon = DrawPolygon(Shape)
                             PolygonRedrawToCanvas(RcgedPolygon, TargetCanvas, TargetInkToolBar)
-                            For Each strokeid As Object In Shape.GetStrokeIds()
-                                Dim stroke As Object = TargetCanvas.InkPresenter.StrokeContainer.GetStrokeById(strokeid)
+                            For Each strokeid As UInteger In Shape.GetStrokeIds()
+                                Dim stroke As InkStroke = TargetCanvas.InkPresenter.StrokeContainer.GetStrokeById(strokeid)
                                 stroke.selected = True
                             Next
                         End If
@@ -105,7 +105,7 @@ Module OneInkShapeRcg
                                 (points(1).Y - points(3).Y) * (points(1).Y - points(3).Y))
         }
 
-        Dim rotAngle As Object = Math.Atan2(points(2).Y - points(0).Y, points(2).X - points(0).X)
+        Dim rotAngle As Double = Math.Atan2(points(2).Y - points(0).Y, points(2).X - points(0).X)
         Dim RotateTransform As New RotateTransform With {
             .Angle = rotAngle * 180 / Math.PI,
             .CenterX = Ellipse.Width / 2.0,
@@ -138,10 +138,10 @@ Module OneInkShapeRcg
     End Function
 
     Public Function DrawPolygon(shape As InkAnalysisInkDrawing)
-        Dim points As Object = shape.Points
+        Dim points As List(Of Point) = shape.Points
         Dim Polygon As New Polygon
 
-        For Each point As Object In points
+        For Each point As Point In points
             Polygon.Points.Add(point)
         Next
 

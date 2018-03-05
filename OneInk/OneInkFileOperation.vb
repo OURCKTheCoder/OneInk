@@ -77,7 +77,7 @@ Module OneInkFileOperation
         Dim File As Windows.Storage.StorageFile = Await Picker.PickSingleFileAsync()
         If File IsNot Nothing Then
             Dim Stream As IRandomAccessStream = Await File.OpenAsync(Windows.Storage.FileAccessMode.Read)
-            Using inputStream As Object = Stream.GetInputStreamAt(0)
+            Using inputStream As IInputStream = Stream.GetInputStreamAt(0)
                 Await TargetCanvas.InkPresenter.StrokeContainer.LoadAsync(inputStream)
             End Using
             Stream.Dispose()
@@ -92,7 +92,7 @@ Module OneInkFileOperation
         '_rect = Rect;
 
         Dim strokes As IReadOnlyList(Of InkStroke) = TargetCanvas.InkPresenter.StrokeContainer.GetStrokes()
-        For Each stroke As Object In strokes
+        For Each stroke As InkStroke In strokes
             stroke.Selected = True
         Next
 
@@ -156,7 +156,7 @@ Module OneInkFileOperation
         If MainPage.CurrentSettings.IsAutoReload = True Then
             If RecentPicFileList.Count <> 0 Then
                 Dim Stream As IRandomAccessStream = Await RecentPicFileList(0).OpenAsync(Windows.Storage.FileAccessMode.Read)
-                Using inputStream As Object = Stream.GetInputStreamAt(0)
+                Using inputStream As IInputStream = Stream.GetInputStreamAt(0)
                     Await TargetCanvas.InkPresenter.StrokeContainer.LoadAsync(inputStream)
                 End Using
                 Stream.Dispose()
